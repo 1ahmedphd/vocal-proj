@@ -35,14 +35,10 @@ def create_tor_instance(instance_num):
         f.write(torrc_content)
     
     return instance_dir, torrc_path
-additional_script_path = os.path.expanduser("~/vocal-proj-termux/main.py")
-
 # Create instances and start them
 for i in range(num_instances):
     instance_dir, torrc_path, socks_port, control_port = create_tor_instance(i)
     # Start Tor instance
     subprocess.Popen(["tor", "-f", torrc_path])
-    # Run the additional Python script
-    subprocess.Popen(["python", additional_script_path, "-socksPort",str(9050+i), "-controlPort",str(10000 + i)])
 
 print(f"{num_instances} Tor instances have been started.")
