@@ -2,7 +2,7 @@ import os
 import subprocess
 
 # Number of Tor instances to create
-num_instances = 500
+num_instances = 5
 
 # Base directories for Tor instances
 base_dir = os.path.expanduser("~/tor-instances")
