@@ -37,8 +37,7 @@ def create_tor_instance(instance_num):
     return instance_dir, torrc_path
 # Create instances and start them
 for i in range(num_instances):
-    instance_dir, torrc_path, socks_port, control_port = create_tor_instance(i)
-    # Start Tor instance
+    instance_dir, torrc_path = create_tor_instance(i)
     subprocess.Popen(["tor", "-f", torrc_path])
 
 print(f"{num_instances} Tor instances have been started.")
