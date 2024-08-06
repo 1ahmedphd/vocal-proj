@@ -1,43 +1,61 @@
 import os
-import subprocess
+import stem.process
+from stem.control import Controller
+import time
 
-# Number of Tor instances to create
-num_instances = 5
+TOR_PATH = '/usr/bin/tor'  # Path to the tor executable
+BASE_SOCKS_PORT = 9050  # Starting port for SOCKS
+BASE_CONTROL_PORT = 9051  # Starting port for control
 
-# Base directories for Tor instances
-base_dir = os.path.expanduser("~/tor-instances")
-os.makedirs(base_dir, exist_ok=True)
-
-# Template for the torrc configuration file
-torrc_template = """
-SocksPort {socks_port}
-ControlPort {control_port}
-DataDirectory {data_directory}
-"""
-
-# Function to create configuration files and directories
-def create_tor_instance(instance_num):
-    instance_dir = os.path.join(base_dir, f"tor-instance{instance_num}")
-    data_dir = os.path.join(instance_dir, "data")
-    os.makedirs(data_dir, exist_ok=True)
-
-    socks_port = 9050 + instance_num
-    control_port = 10000 + instance_num
-
-    torrc_content = torrc_template.format(
-        socks_port=socks_port,
-        control_port=control_port,
-        data_directory=data_dir
-    )
-
-    torrc_path = os.path.join(instance_dir, "torrc")
-    with open(torrc_path, "w") as f:
-        f.write(torrc_content)
+def start_tor_instance(socks_port, control_port, data_dir):
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
     
-    return instance_dir, torrc_path
-# Create instances and start them
-for i in range(num_instances):
-    instance_dir, torrc_path = create_tor_instance(i)
-    subprocess.Popen(["tor", "-f", torrc_path])
+    tor_process = stem.process.launch_tor_with_config(
+        config={
+            'SocksPort': str(socks_port),
+            'ControlPort': str(control_port),
+            'DataDirectory': data_dir,
+            'Log': 'NOTICE file /dev/null',  # Reduce logging to avoid disk usage
+        },
+        tor_cmd=TOR_PATH,
+        init_msg_handler=lambda line: print(line) if 'Bootstrapped' in line else None,
+    )
+    
+    return tor_process
 
-print(f"{num_instances} Tor instances have been started.")
+def connect_to_control_port(control_port):
+    controller = Controller.from_port(port=control_port)
+    controller.authenticate()
+    return controller
+
+def main(num_instances):
+    tor_instances = []
+    for i in range(num_instances):
+        socks_port = BASE_SOCKS_PORT + i
+        control_port = BASE_CONTROL_PORT + i
+        data_dir = f'tor_data_{i}'
+        
+        print(f'Starting Tor instance {i+1} on ports {socks_port} (SOCKS) and {control_port} (Control)')
+        tor_process = start_tor_instance(socks_port, control_port, data_dir)
+        tor_instances.append(tor_process)
+        
+        # Optional: connect to the control port
+        controller = connect_to_control_port(control_port)
+        print(f'Connected to Tor instance {i+1} control port')
+        
+        # You can perform additional actions using the controller here
+        controller.close()
+    
+    try:
+        # Keep the script running to keep Tor instances alive
+        while True:
+            time.sleep(10)
+    except KeyboardInterrupt:
+        print('Shutting down Tor instances...')
+        for tor_process in tor_instances:
+            tor_process.terminate()
+
+if __name__ == "__main__":
+    num_instances = 500  # Number of Tor instances to run
+    main(num_instances)
