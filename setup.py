@@ -16,6 +16,8 @@ def start_tor_instance(socks_port, control_port, data_dir):
             'SocksPort': str(socks_port),
             'ControlPort': str(control_port),
             'DataDirectory': data_dir,
+            'UseBridges': 1,
+            'Bridge': "obfs4 151.67.241.248:8080 0D0E74E2FDE5C41D16F8C79969E37E8978AD066C cert=nE2vFIzUzjoyUstscXBFKe88SjlM/IIwR9+AddX7uCyoIXwe26d2c3TzypCqeLjfdoWRYg iat-mode=0",
             'Log': 'NOTICE file /dev/null',  # Reduce logging to avoid disk usage
         },
         tor_cmd=TOR_PATH,
@@ -57,5 +59,5 @@ def main(num_instances):
             tor_process.terminate()
 
 if __name__ == "__main__":
-    num_instances = 500  # Number of Tor instances to run
+    num_instances = 1  # Number of Tor instances to run
     main(num_instances)
