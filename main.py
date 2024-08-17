@@ -9,11 +9,14 @@ import time
 from datetime import datetime
 import os
 import argparse
+import subprocess
+import signal
 
 start = datetime.now()
 parser = argparse.ArgumentParser(description="Process some arguments.")
 parser.add_argument('-controlPort', type=int, required=True, help='control port')
 parser.add_argument('-socksPort', type=int, required=True, help='socks port')
+parser.add_argument('-itter', type=int, required=True, help='itteration')
 args = parser.parse_args()
 # Set up Tor options for Firefox
 tor_proxy = f"127.0.0.1:{args.socksPort}"
@@ -35,6 +38,13 @@ firefox_options.add_argument("--headless")
 
 driver = webdriver.Firefox(options=firefox_options)
 
+def start_tor(config_file):
+    try:
+        subprocess.run(["tor", "-f", config_file], check=True)
+        print("Tor started successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to start Tor: {e}")
+
 def is_tor_connected():
     try:
         with Controller.from_port(port=args.controlPort) as controller:  # Default control port for Tor Browser is 9151
@@ -53,17 +63,31 @@ def perform_action():
     except Exception as e:
         print("\033[31m"+f"Error performing action: {e}")
 
+def stop_tor():
+    try:
+        # Find the Tor process ID
+        pid = subprocess.check_output(["pgrep", "tor"]).decode().strip()
+        
+        # Send SIGTERM to the process
+        os.kill(int(pid), signal.SIGTERM)
+        print("Tor stopped successfully.")
+    except subprocess.CalledProcessError:
+        print("Tor is not running.")
+    except Exception as e:
+        print(f"Failed to stop Tor: {e}")
+
 def main():
+    start_tor(f"./insts/torrc_{args.itter}")
     while not is_tor_connected():
         print("\033[33m"+"Waiting for Tor to connect...")
         time.sleep(1)  # Check every 1 second
     
     print("\033[32m"+"Tor is connected.")
     perform_action()
+    stop_tor()
     end = datetime.now()
     print("\033[32m"+f"Done in {end-start}!")
     # Optionally, terminate the Tor Browser process after performing the action
-    os.system("cmd /k \"taskkill/f /IM firefox.exe\"")
 
 if __name__ == "__main__":
     main()
