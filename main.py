@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -36,7 +37,9 @@ firefox_options.set_preference("network.dns.disablePrefetch", True)
 firefox_options.set_preference("network.http.sendRefererHeader", 0)
 firefox_options.add_argument("--headless")
 
-driver = webdriver.Firefox(options=firefox_options)
+serv = Service("./geckodriver")
+
+driver = webdriver.Firefox(options=firefox_options, service=serv)
 
 def start_tor(config_file):
     try:
