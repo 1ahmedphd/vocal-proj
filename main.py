@@ -37,7 +37,7 @@ firefox_options.set_preference("network.dns.disablePrefetch", True)
 firefox_options.set_preference("network.http.sendRefererHeader", 0)
 firefox_options.add_argument("--headless")
 
-serv = Service("./geckodriver")
+serv = Service("/usr/local/bin/geckodriver")
 
 driver = webdriver.Firefox(options=firefox_options, service=serv)
 
