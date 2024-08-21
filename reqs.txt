@@ -1,2 +1,2 @@
 selenium==4.23.1
-stem==1.8.2 
+stem==1.8.2
