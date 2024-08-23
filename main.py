@@ -4,6 +4,7 @@ import socket
 import datetime
 import subprocess
 import argparse
+import time
 
 start = datetime.datetime.now()
 
@@ -14,7 +15,7 @@ parse.add_argument("-itter", type=int, help="to know which itteration")
 
 args = parse.parse_args()
 
-tor_process = subprocess.Popen(["tor", "-f", f"./insts/torrc_{args.itter}"])
+tor_process = subprocess.Popen(["tor", "-f", f"insts/torrc_{args.itter}"])
 
 firefox_options = Options()
 
@@ -31,16 +32,16 @@ def is_tor_running(host='127.0.0.1', port=args.sock):
     except (ConnectionRefusedError, socket.timeout, OSError):
         return False
 
-if is_tor_running():
-    print("Tor is running.")
-    with Browser('firefox', options=firefox_options) as browser:
-        browser.visit('http://adfoc.us/8627851')
-        if browser.is_element_present_by_xpath("/html/body/div[2]/div[1]/a/img", wait_time=10):
-            pass
+while not is_tor_running():
+    print("tor not running")
+    time.sleep(1)
+print("Tor is running.")
+with Browser('firefox', options=firefox_options) as browser:
+    browser.visit('http://adfoc.us/8627851')
+    if browser.is_element_present_by_xpath("/html/body/div[2]/div[1]/a/img", wait_time=10):
+        pass
     print("visited website")
     tor_process.kill()
-else:
-    print("Tor is not running.")
 end = datetime.datetime.now()
 
 print(f"Done in {end - start} !")
