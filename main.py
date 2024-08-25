@@ -20,7 +20,7 @@ tor_process = subprocess.Popen(["tor", "-f", f"insts/torrc_{args.itter}"])
 chrome_options = Options()
 
 # Configure the proxy settings
-chrome_options.add_argument("--proxy-server=socks5://127.0.0.1:9150")
+chrome_options.add_argument(f"--proxy-server=socks5://127.0.0.1:{args.sock}")
 chrome_options.add_argument("--headless")
 
 def is_tor_running(host='127.0.0.1', port=args.sock):
