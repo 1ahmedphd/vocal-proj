@@ -34,7 +34,7 @@ while not is_tor_running():
     print("tor not running")
     time.sleep(1)
 print("Tor is running.")
-with Browser('firefox', options=chrome_options) as browser:
+with Browser('chrome', options=chrome_options) as browser:
     browser.visit('http://adfoc.us/8627851')
     if browser.is_element_present_by_xpath("/html/body/div[2]/div[1]/a/img", wait_time=10):
         pass
